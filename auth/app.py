@@ -9,6 +9,7 @@ def create_app():
     app.config['BUNDLE_ERRORS'] = True
     load_dotenv()
     app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET")
+    app.config["JWT_TOKEN_LOCATION"] = 'headers'
     JWTManager(app)
     
     init_db()

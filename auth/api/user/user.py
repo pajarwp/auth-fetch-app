@@ -1,6 +1,6 @@
 from flask import Blueprint
 from flask_restful import Api, Resource, reqparse
-from flask_jwt_extended import create_access_token
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from database import get_connection
 from util.response import create_response
 import datetime, random, string
@@ -11,6 +11,11 @@ api = Api(bp_user)
 class User(Resource):
     def __init__(self):
         self.db = get_connection()
+        
+    @jwt_required
+    def get(self):
+        current_user = get_jwt_identity()
+        return create_response(current_user, "Success", "ok"), 200
         
     def post(self):
         parse = reqparse.RequestParser()
@@ -64,7 +69,7 @@ class UserToken(Resource):
             "role": user[1],
             "created_at": user[2],
         }
-        jwt = create_access_token(identity=claims)
+        jwt = create_access_token(claims)
         return create_response({"token": jwt}, "Success", "ok"), 200
     
 api.add_resource(User,'')
