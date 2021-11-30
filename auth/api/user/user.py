@@ -1,5 +1,6 @@
 from flask import Blueprint
 from flask_restful import Api, Resource, reqparse
+from flask_jwt_extended import create_access_token
 from database import get_connection
 from util.response import create_response
 import datetime, random, string
@@ -13,23 +14,23 @@ class User(Resource):
         
     def post(self):
         parse = reqparse.RequestParser()
-        parse.add_argument('phone_number', location='json', type=str, required=True)
+        parse.add_argument('phone', location='json', type=str, required=True)
         parse.add_argument('name', location='json', type=str, required=True)
         parse.add_argument('role', location='json', type=str, required=True)
         args = parse.parse_args()
                 
-        user = self.db.execute("SELECT phone FROM user WHERE phone=" + args["phone_number"]).fetchone()
+        user = self.db.execute("SELECT name FROM user WHERE name=" + args["name"]).fetchone()
         if user != None:
-            return create_response([], "Phone number already used, use different phone number", "failed")
+            return create_response([], "Name already used, use different name", "failed")
         
         password = self.create_password()
         created_at = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         
-        self.db.execute("INSERT INTO user VALUES (?, ?, ?, ?, ?)", [args["phone_number"], args["name"], args["role"], password, created_at])
+        self.db.execute("INSERT INTO user VALUES (?, ?, ?, ?, ?)", [args["phone"], args["name"], args["role"], password, created_at])
         self.db.commit()
         self.db.close()
         data = {
-            "phone": args["phone_number"],
+            "phone": args["phone"],
             "name": args["name"],
             "role": args["role"],
             "password": password,
@@ -44,7 +45,27 @@ class User(Resource):
         if row != None:
             self.create_password()
         return password
+class UserToken(Resource):
+    def __init__(self):
+        self.db = get_connection()
         
+    def post(self):
+        parse = reqparse.RequestParser()
+        parse.add_argument('phone', location='json', type=str, required=True)
+        parse.add_argument('password', location='json', type=str, required=True)
+        args = parse.parse_args()
         
-            
+        user = self.db.execute("SELECT name, role, created_at FROM user WHERE phone=" + args["phone"] + " AND password='" + args["password"] + "'").fetchone()
+        if user == None:
+            return create_response([], "Invalid credential, please check phone number and password", "Unauthorized"), 401
+        claims= {
+            "name": user[0],
+            "phone": args["phone"],
+            "role": user[1],
+            "created_at": user[2],
+        }
+        jwt = create_access_token(identity=claims)
+        return create_response({"token": jwt}, "Success", "ok"), 200
+    
 api.add_resource(User,'')
+api.add_resource(UserToken,'/login')
