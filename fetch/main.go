@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
+	"github.com/pajarwp/auth-fetch-app/config"
 	"github.com/pajarwp/auth-fetch-app/entity/fetch/delivery"
 	"github.com/pajarwp/auth-fetch-app/entity/fetch/repository"
 	"github.com/pajarwp/auth-fetch-app/entity/fetch/usecase"
@@ -16,6 +17,7 @@ func main() {
 	repo := repository.NewAuthAppFetchRepository()
 	usecase := usecase.NewFetchUsecase(c, repo)
 	delivery.NewFetchHttpDelivery(*e, usecase)
+	port := config.GetEnvVariable("FETCH_APP_PORT")
 
-	e.Start(":9000")
+	e.Start(":" + port)
 }
