@@ -18,6 +18,7 @@ func NewFetchHttpDelivery(e echo.Echo, usecase usecase.FetchUsecase) {
 	}
 	fetch := e.Group("/fetch")
 	fetch.GET("/claims", handler.GetClaims)
+	fetch.GET("/resource", handler.FetchResource)
 }
 
 func (f FetchHttpDelivery) GetClaims(c echo.Context) error {
@@ -37,5 +38,25 @@ func (f FetchHttpDelivery) GetClaims(c echo.Context) error {
 	resp.Status = "ok"
 	resp.Message = "Success"
 	resp.Data = claims
+	return c.JSON(http.StatusOK, resp)
+}
+
+func (f FetchHttpDelivery) FetchResource(c echo.Context) error {
+	resp := fetch.Response{}
+	token := c.Request().Header.Get(echo.HeaderAuthorization)
+	if token == "" {
+		resp.Status = "Unauthorized"
+		resp.Message = "Missing Authorization Token in Header"
+		return c.JSON(http.StatusUnauthorized, resp)
+	}
+	resources, err := f.FetchUsecase.FetchResource(token)
+	if err != nil {
+		resp.Status = "failed"
+		resp.Message = err.Error()
+		return c.JSON(http.StatusInternalServerError, resp)
+	}
+	resp.Status = "ok"
+	resp.Message = "Success"
+	resp.Data = resources
 	return c.JSON(http.StatusOK, resp)
 }
