@@ -20,5 +20,5 @@ func NewFetchUsecase(repo repo.AuthAppFetchRepository) FetchUsecase {
 }
 
 func (f fetchUsecase) GetClaims(token string) (fetch.UserClaims, error) {
-	return f.GetClaims(token)
+	return f.AuthAppFetchRepository.GetClaims(token)
 }

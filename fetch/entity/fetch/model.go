@@ -6,3 +6,9 @@ type UserClaims struct {
 	Role      string `json:"role"`
 	CreatedAt string `json:"created_at"`
 }
+
+type Response struct {
+	Message string      `json:"message"`
+	Status  string      `json:"status"`
+	Data    interface{} `json:"data"`
+}
