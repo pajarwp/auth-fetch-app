@@ -85,7 +85,7 @@ func (a fetchRepository) GetCurrencyConverter() (map[string]interface{}, error) 
 		return nil, err
 	}
 	q := request.URL.Query()
-	q.Add("1", "USD_IDR")
+	q.Add("q", "USD_IDR")
 	q.Add("compact", "ultra")
 	q.Add("apiKey", apiKey)
 	request.URL.RawQuery = q.Encode()
