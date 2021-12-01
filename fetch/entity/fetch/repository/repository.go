@@ -13,6 +13,7 @@ import (
 
 type FetchRepository interface {
 	GetClaims(token string) (fetch.UserClaims, error)
+	FetchResource(token string) ([]map[string]interface{}, error)
 }
 
 type fetchRepository struct {
@@ -50,4 +51,26 @@ func (a fetchRepository) GetClaims(token string) (fetch.UserClaims, error) {
 	claims.Role = data["role"].(string)
 	claims.CreatedAt = data["created_at"].(string)
 	return claims, nil
+}
+
+func (a fetchRepository) FetchResource(token string) ([]map[string]interface{}, error) {
+	_, err := a.GetClaims(token)
+	if err != nil {
+		return nil, err
+	}
+	url := config.GetEnvVariable("RESOURCES_URL")
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error: " + resp.Status)
+	}
+	var respMap []map[string]interface{}
+	err = json.Unmarshal(body, &respMap)
+	return respMap, nil
 }
