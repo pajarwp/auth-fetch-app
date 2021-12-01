@@ -10,15 +10,15 @@ type FetchUsecase interface {
 }
 
 type fetchUsecase struct {
-	repo.AuthAppFetchRepository
+	repo.FetchRepository
 }
 
-func NewFetchUsecase(repo repo.AuthAppFetchRepository) FetchUsecase {
+func NewFetchUsecase(repo repo.FetchRepository) FetchUsecase {
 	return fetchUsecase{
 		repo,
 	}
 }
 
 func (f fetchUsecase) GetClaims(token string) (fetch.UserClaims, error) {
-	return f.AuthAppFetchRepository.GetClaims(token)
+	return f.FetchRepository.GetClaims(token)
 }
