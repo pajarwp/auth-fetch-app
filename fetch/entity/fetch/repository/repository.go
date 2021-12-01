@@ -13,8 +13,8 @@ import (
 
 type FetchRepository interface {
 	GetClaims(token string) (fetch.UserClaims, error)
-	FetchResource(token string) ([]map[string]interface{}, error)
-	GetCurrencyConverter() (map[string]interface{}, error)
+	FetchResource(token string) ([]map[string]string, error)
+	GetCurrencyConverter() (map[string]float64, error)
 }
 
 type fetchRepository struct {
@@ -54,7 +54,7 @@ func (a fetchRepository) GetClaims(token string) (fetch.UserClaims, error) {
 	return claims, nil
 }
 
-func (a fetchRepository) FetchResource(token string) ([]map[string]interface{}, error) {
+func (a fetchRepository) FetchResource(token string) ([]map[string]string, error) {
 	_, err := a.GetClaims(token)
 	if err != nil {
 		return nil, err
@@ -71,12 +71,12 @@ func (a fetchRepository) FetchResource(token string) ([]map[string]interface{}, 
 	if resp.StatusCode != 200 {
 		return nil, fmt.Errorf("Error: " + resp.Status)
 	}
-	var respMap []map[string]interface{}
+	var respMap []map[string]string
 	err = json.Unmarshal(body, &respMap)
 	return respMap, nil
 }
 
-func (a fetchRepository) GetCurrencyConverter() (map[string]interface{}, error) {
+func (a fetchRepository) GetCurrencyConverter() (map[string]float64, error) {
 	var client = &http.Client{}
 	url := config.GetEnvVariable("CURRENCY_CONVERTER_URL")
 	apiKey := config.GetEnvVariable("CURRENCY_CONVERTER_API_KEY")
@@ -85,7 +85,7 @@ func (a fetchRepository) GetCurrencyConverter() (map[string]interface{}, error) 
 		return nil, err
 	}
 	q := request.URL.Query()
-	q.Add("q", "USD_IDR")
+	q.Add("q", "IDR_USD")
 	q.Add("compact", "ultra")
 	q.Add("apiKey", apiKey)
 	request.URL.RawQuery = q.Encode()
@@ -100,7 +100,7 @@ func (a fetchRepository) GetCurrencyConverter() (map[string]interface{}, error) 
 	if resp.StatusCode != 200 {
 		return nil, fmt.Errorf("Error: " + resp.Status)
 	}
-	var respMap map[string]interface{}
+	var respMap map[string]float64
 	err = json.Unmarshal(body, &respMap)
 	return respMap, nil
 }
