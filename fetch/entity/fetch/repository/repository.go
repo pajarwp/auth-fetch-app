@@ -14,6 +14,7 @@ import (
 type FetchRepository interface {
 	GetClaims(token string) (fetch.UserClaims, error)
 	FetchResource(token string) ([]map[string]interface{}, error)
+	GetCurrencyConverter() (map[string]interface{}, error)
 }
 
 type fetchRepository struct {
@@ -71,6 +72,35 @@ func (a fetchRepository) FetchResource(token string) ([]map[string]interface{}, 
 		return nil, fmt.Errorf("Error: " + resp.Status)
 	}
 	var respMap []map[string]interface{}
+	err = json.Unmarshal(body, &respMap)
+	return respMap, nil
+}
+
+func (a fetchRepository) GetCurrencyConverter() (map[string]interface{}, error) {
+	var client = &http.Client{}
+	url := config.GetEnvVariable("CURRENCY_CONVERTER_URL")
+	apiKey := config.GetEnvVariable("CURRENCY_CONVERTER_API_KEY")
+	request, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+	q := request.URL.Query()
+	q.Add("1", "USD_IDR")
+	q.Add("compact", "ultra")
+	q.Add("apiKey", apiKey)
+	request.URL.RawQuery = q.Encode()
+	resp, err := client.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error: " + resp.Status)
+	}
+	var respMap map[string]interface{}
 	err = json.Unmarshal(body, &respMap)
 	return respMap, nil
 }
