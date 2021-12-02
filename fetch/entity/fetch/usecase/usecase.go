@@ -106,7 +106,7 @@ func (f fetchUsecase) AggregateResource(token string) (map[string][]fetch.Aggreg
 	})
 
 	for i := 0; i < len(resp); i++ {
-		provinsi := strings.ToUpper(resp[i]["area_provinsi"])
+		provinsi := strings.ToLower(resp[i]["area_provinsi"])
 		// check if provinsi already grouped, if true skip
 		if _, ok := grouping[provinsi]; ok {
 			continue
@@ -115,7 +115,7 @@ func (f fetchUsecase) AggregateResource(token string) (map[string][]fetch.Aggreg
 			grouping[provinsi] = []fetch.Aggregate{}
 
 			for j := i + 1; j < len(resp); j++ {
-				itemProvinsi := strings.ToUpper(resp[j]["area_provinsi"])
+				itemProvinsi := strings.ToLower(resp[j]["area_provinsi"])
 				// check if provinsi is the same with current provincy and timestamp is not null
 				if itemProvinsi == provinsi && resp[j]["timestamp"] != "" {
 					timestamp := f.parseTimestamp(resp[j]["timestamp"])
