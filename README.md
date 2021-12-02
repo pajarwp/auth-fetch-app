@@ -27,3 +27,6 @@ copy env.example content to your env file, use your own configuration
 
 To run app:
 go run main.go
+
+To run unit test:
+go test ./... -cover
