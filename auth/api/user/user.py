@@ -99,7 +99,8 @@ class UserToken(Resource):
             "role": user[1],
             "created_at": user[2],
         }
-        jwt = create_access_token(claims)
+        expires = datetime.timedelta(hours=8)
+        jwt = create_access_token(claims, expires_delta=expires)
         return create_response({"token": jwt}, "Success", "ok"), 200
     
 api.add_resource(User,'')
