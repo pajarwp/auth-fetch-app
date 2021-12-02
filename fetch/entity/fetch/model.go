@@ -22,12 +22,8 @@ type Resource struct {
 }
 
 type TempAggregate struct {
-	MinPrice   float64
-	MaxPrice   float64
 	TotalPrice float64
 	ListPrice  []float64
-	MinSize    float64
-	MaxSize    float64
 	TotalSize  float64
 	ListSize   []float64
 	WeekStart  time.Time

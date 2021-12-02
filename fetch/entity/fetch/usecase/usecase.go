@@ -80,7 +80,7 @@ func (f fetchUsecase) AggregateResource(token string) (map[string][]fetch.Aggreg
 	if err != nil {
 		return grouping, err
 	}
-	if claims.Role != "admin" {
+	if strings.ToLower(claims.Role) != "admin" {
 		return grouping, fmt.Errorf("Forbidden Access for role " + claims.Role)
 	}
 
@@ -91,12 +91,14 @@ func (f fetchUsecase) AggregateResource(token string) (map[string][]fetch.Aggreg
 
 	var resp []map[string]string
 
+	// remove data with empty provinsi and timestamp
 	for _, v := range response {
 		if v["area_provinsi"] != "" && v["timestamp"] != "" {
 			resp = append(resp, v)
 		}
 	}
 
+	// sort data by timestamp
 	sort.Slice(resp, func(i, j int) bool {
 		time1 := f.parseTimestamp(resp[i]["timestamp"])
 		time2 := f.parseTimestamp(resp[j]["timestamp"])
@@ -125,18 +127,6 @@ func (f fetchUsecase) AggregateResource(token string) (map[string][]fetch.Aggreg
 						tempAggregate.TotalSize += size
 						tempAggregate.ListPrice = append(tempAggregate.ListPrice, price)
 						tempAggregate.ListSize = append(tempAggregate.ListSize, size)
-						if price < tempAggregate.MinPrice {
-							tempAggregate.MinPrice = price
-						}
-						if price > tempAggregate.MaxPrice {
-							tempAggregate.MaxPrice = price
-						}
-						if size < tempAggregate.MinSize {
-							tempAggregate.MinSize = size
-						}
-						if size > tempAggregate.MaxSize {
-							tempAggregate.MaxSize = size
-						}
 					} else {
 						// if timestamp not in range current week, aggregate current week data and reset tempAggregate with new data
 						aggregate := f.getAggregate(tempAggregate)
@@ -204,15 +194,16 @@ func (f fetchUsecase) getMedian(list []float64) float64 {
 
 func (f fetchUsecase) getAggregate(tempAggregate fetch.TempAggregate) fetch.Aggregate {
 	var aggregate fetch.Aggregate
-	aggregate.MaxPrice = tempAggregate.MaxPrice
-	aggregate.MinPrice = tempAggregate.MinPrice
+
 	aggregate.AvgPrice = tempAggregate.TotalPrice / float64(len(tempAggregate.ListPrice))
-	aggregate.MaxSize = tempAggregate.MaxSize
-	aggregate.MinSize = tempAggregate.MinSize
 	aggregate.AvgSize = tempAggregate.TotalSize / float64(len(tempAggregate.ListSize))
 
 	sort.Float64s(tempAggregate.ListPrice)
 	sort.Float64s(tempAggregate.ListSize)
+	aggregate.MaxPrice = tempAggregate.ListPrice[len(tempAggregate.ListPrice)-1]
+	aggregate.MinPrice = tempAggregate.ListPrice[0]
+	aggregate.MaxSize = tempAggregate.ListSize[len(tempAggregate.ListSize)-1]
+	aggregate.MinSize = tempAggregate.ListSize[0]
 	aggregate.MedianPrice = f.getMedian(tempAggregate.ListPrice)
 	aggregate.MedianSize = f.getMedian(tempAggregate.ListSize)
 	startPeriod := tempAggregate.WeekStart.Format("2006-01-02")
@@ -227,12 +218,8 @@ func (f fetchUsecase) assignTempAggregate(resp map[string]string) fetch.TempAggr
 	var tempAggregate fetch.TempAggregate
 	intPrice, _ := strconv.ParseFloat(resp["price"], 64)
 	intSize, _ := strconv.ParseFloat(resp["size"], 64)
-	tempAggregate.MinPrice = intPrice
-	tempAggregate.MaxPrice = intPrice
 	tempAggregate.TotalPrice = intPrice
 	tempAggregate.ListPrice = []float64{intPrice}
-	tempAggregate.MinSize = intSize
-	tempAggregate.MaxSize = intSize
 	tempAggregate.TotalSize = intSize
 	tempAggregate.ListSize = []float64{intSize}
 	tempAggregate.WeekStart, tempAggregate.WeekEnd = f.getWeekRange(resp["timestamp"])
