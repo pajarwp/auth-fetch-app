@@ -6,6 +6,8 @@ A simple application for authentication and fetching data from resources.
 
 ## Auth app
 
+go to auth folder
+
 pip3 install -r requirements.txt
 
 make .env file
@@ -15,6 +17,8 @@ To run app:
 python3 app.py
 
 ## Fetch app
+
+go to fetch folder
 
 go mod download
 
