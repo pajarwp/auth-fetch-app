@@ -14,7 +14,7 @@ copy env.example content to your env file, use your own configuration
 To run app:
 python3 app.py
 
-## Fecth app
+## Fetch app
 
 go mod download
 
