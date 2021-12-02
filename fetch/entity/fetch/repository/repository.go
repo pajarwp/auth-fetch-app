@@ -55,10 +55,6 @@ func (a fetchRepository) GetClaims(token string) (fetch.UserClaims, error) {
 }
 
 func (a fetchRepository) FetchResource(token string) ([]map[string]string, error) {
-	_, err := a.GetClaims(token)
-	if err != nil {
-		return nil, err
-	}
 	url := config.GetEnvVariable("RESOURCES_URL")
 	resp, err := http.Get(url)
 	if err != nil {
